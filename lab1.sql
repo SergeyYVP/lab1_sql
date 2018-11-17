@@ -50,12 +50,20 @@ FROM employee
 GROUP BY department_id
 HAVING COUNT(DISTINCT name)>=3;
 
+
 -- Запрос 3
-SELECT department_id, SUM(num_public) AS num_of_employee
-FROM employee
-GROUP BY department_id
-ORDER BY SUM(num_public) DESC
-LIMIT 1;
+WITH tmp AS (
+    SELECT department_id, SUM(num_public) AS num_of_public, DENSE_RANK() OVER(ORDER BY SUM(num_public) DESC) AS rating
+    FROM employee
+    GROUP BY department_id
+    ORDER BY SUM(num_public) DESC
+)
+SELECT department_id, num_of_public
+FROM tmp
+WHERE rating=1;
+
+
+SUM(num_public)
 
 -- Запрос 4
 WITH tmp AS (
@@ -102,11 +110,15 @@ TO '/var/lib/postgresql/data/pg_data/zapros_2.sql' WITH CSV DELIMITER ',';
 
 
 COPY (
-SELECT department_id, SUM(num_public) AS num_of_public
-FROM employee
-GROUP BY department_id
-ORDER BY SUM(num_public) DESC
-LIMIT 1
+WITH tmp AS (
+    SELECT department_id, SUM(num_public) AS num_of_public, DENSE_RANK() OVER(ORDER BY SUM(num_public) DESC) AS rating
+    FROM employee
+    GROUP BY department_id
+    ORDER BY SUM(num_public) DESC
+)
+SELECT department_id, num_of_public
+FROM tmp
+WHERE rating=1
 ) 
 TO '/var/lib/postgresql/data/pg_data/zapros_3.sql' WITH CSV DELIMITER ',';
 
